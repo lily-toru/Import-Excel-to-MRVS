@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?><record_update table="sys_script_include">
+    <sys_script_include action="INSERT_OR_UPDATE">
+        <access>package_private</access>
+        <active>true</active>
+        <api_name>x_1755799_xlupload.readEXCEL</api_name>
+        <caller_access/>
+        <client_callable>true</client_callable>
+        <description/>
+        <mobile_callable>false</mobile_callable>
+        <name>readEXCEL</name>
+        <sandbox_callable>false</sandbox_callable>
+        <script><![CDATA[var readEXCEL = Class.create();
+readEXCEL.prototype = Object.extendsObject(global.AbstractAjaxProcessor, {
+    prepareData: function(row) {
+        var myData = {};
+        myData.ent_id = row['ENT ID']; 
+        myData.ent_name = row['ENT NAME']; 
+        myData.type = row['TYPE']; 
+        myData.comment = row['COMMENT']; 
+        return myData;
+    },
+
+    getData: function() {
+        try {
+            var id = this.getParameter('sysparm_id'); 
+            var myObjArray = []; 
+            
+            // 1. 查询附件记录
+            var gr = new GlideRecord('sys_attachment');
+            if (!gr.get(id)) {
+                return JSON.stringify({error: '附件不存在或已删除'});
+            }
+            
+            // 2. 验证文件类型
+            var contentType = gr.getValue('content_type');
+            if (!contentType.startsWith('application/vnd.ms-excel') && 
+                !contentType.startsWith('application/vnd.openxmlformats-officedocument.spreadsheetml')) {
+                return JSON.stringify({error: '请上传有效的 Excel 文件'});
+            }
+            
+            // 3. 解析 Excel
+            var parser = new sn_impex.GlideExcelParser(); 
+            var attachment = new GlideSysAttachment();
+            var attachmentStream = attachment.getContentStream(id);
+            parser.parse(attachmentStream); 
+
+            // 4. 手动处理表头（不使用 getHeaders 和 reset）
+            var headers = [];
+            var isHeaderRow = true;
+            
+            // 5. 逐行处理数据（第一行为表头，其余为数据）
+            while (parser.next()) { 
+                var row = parser.getRow();
+                if (!row || Object.keys(row).length === 0) continue;
+                
+                if (isHeaderRow) {
+                    // 第一行作为表头
+                    headers = Object.keys(row);
+                    gs.info('获取表头: ' + headers);
+                    
+                    // 验证必要的列是否存在
+                    var requiredColumns = ['ENT ID', 'ENT NAME', 'TYPE', 'COMMENT'];
+                    for (var i = 0; i < requiredColumns.length; i++) {
+                        if (!headers.includes(requiredColumns[i])) {
+                            return JSON.stringify({error: 'Excel 文件缺少必要的列: ' + requiredColumns[i]});
+                        }
+                    }
+                    
+                    isHeaderRow = false; // 标记表头已处理
+                    continue; // 跳过表头行，不添加到结果
+                }
+                
+                // 处理数据行
+                myObjArray.push(this.prepareData(row)); 
+            }
+            
+            // 检查是否有数据行
+            if (myObjArray.length === 0) {
+                return JSON.stringify({error: 'Excel 文件中未找到数据行'});
+            }
+            
+            return JSON.stringify({success: true, data: myObjArray});
+        } catch (e) {
+            gs.error('Excel解析错误: ' + e);
+            return JSON.stringify({error: '解析Excel时出错: ' + e.message});
+        }
+    },
+
+    type: 'readEXCEL'
+});]]></script>
+        <sys_class_name>sys_script_include</sys_class_name>
+        <sys_created_by>admin</sys_created_by>
+        <sys_created_on>2025-06-04 05:43:25</sys_created_on>
+        <sys_id>d9d46a6f4775a61028da392f316d4345</sys_id>
+        <sys_mod_count>7</sys_mod_count>
+        <sys_name>readEXCEL</sys_name>
+        <sys_package display_value="XlUpload" source="x_1755799_xlupload">0694cee74771a61028da392f316d43f7</sys_package>
+        <sys_policy>read</sys_policy>
+        <sys_scope display_value="XlUpload">0694cee74771a61028da392f316d43f7</sys_scope>
+        <sys_update_name>sys_script_include_d9d46a6f4775a61028da392f316d4345</sys_update_name>
+        <sys_updated_by>admin</sys_updated_by>
+        <sys_updated_on>2025-06-04 06:08:14</sys_updated_on>
+    </sys_script_include>
+</record_update>
