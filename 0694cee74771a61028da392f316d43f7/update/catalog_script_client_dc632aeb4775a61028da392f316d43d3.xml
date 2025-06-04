@@ -22,33 +22,29 @@
     if (isLoading || newValue == '') {
         return;
     }
-
     function ResponseFunction(response) {
         try {
-            var results = JSON.parse(response);
-            
-            // 检查错误
+            var results = JSON.parse(response);          
+            // check for errors
             if (results.error) {
                 alert(results.error);
                 return;
-            }
-            
-            // 更新 MRVS 变量集
+            }       
+            // update MRVS variable set
             if (results.success && results.data && results.data.length > 0) {
-                // 设置数据到 MRVS 变量 (假设变量名是 data_set)
+                // set data to MRVS variable
                 g_form.setValue('data_set', JSON.stringify(results.data));
                 
-                // 可选：显示成功消息
-                alert('成功导入 ' + results.data.length + ' 条记录');
+                // show success message
+                alert('Successfully imported' + results.data.length + 'records');
             } else {
-                alert('Excel 文件中未找到有效数据');
+                alert('No valid data found in Excel file');
             }
         } catch (e) {
-            alert('处理响应时出错: ' + e);
+            alert('Error processing response: ' + e);
         }
     }
-
-    // 调用服务器端脚本
+    // call server-side script
     if (newValue) {
         var ga = new GlideAjax('readEXCEL'); 
         ga.addParam('sysparm_name', 'getData'); 
@@ -62,7 +58,7 @@
         <sys_domain>global</sys_domain>
         <sys_domain_path>/</sys_domain_path>
         <sys_id>dc632aeb4775a61028da392f316d43d3</sys_id>
-        <sys_mod_count>1</sys_mod_count>
+        <sys_mod_count>2</sys_mod_count>
         <sys_name>Upload excel</sys_name>
         <sys_overrides/>
         <sys_package display_value="XlUpload" source="x_1755799_xlupload">0694cee74771a61028da392f316d43f7</sys_package>
@@ -70,7 +66,7 @@
         <sys_scope display_value="XlUpload">0694cee74771a61028da392f316d43f7</sys_scope>
         <sys_update_name>catalog_script_client_dc632aeb4775a61028da392f316d43d3</sys_update_name>
         <sys_updated_by>admin</sys_updated_by>
-        <sys_updated_on>2025-06-04 06:03:36</sys_updated_on>
+        <sys_updated_on>2025-06-04 06:22:06</sys_updated_on>
         <table/>
         <type>onChange</type>
         <ui_type>10</ui_type>
